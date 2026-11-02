@@ -2,8 +2,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import net from 'node:net';
 
-export const help = `Usage: magpie-claude-science <install|models|upgrade|rollback|doctor|restart|uninstall> [options]
+export const help = `Usage: magpie-claude-science <install|models|upgrade|rollback|doctor|restart|register|uninstall> [options]
   models                    Select installed models interactively (WSL)
+  register                  Register mycsci for an existing WSL installation
   --model <catalog-id>      Unattended install; with models, add one model
   --gateway <loopback-url>  Defaults to Magpie settings port, then 3425
   --magpie <executable>     macOS only: MAGPIE_BIN, PATH, or the app
@@ -15,7 +16,7 @@ const keys = {'--model':'model','--gateway':'gateway','--magpie':'magpie','--sci
 export function parseArgs(args) {
   if(args.includes('--help') || args.includes('-h')) return {command:'help'};
   const result={command:args[0]||'help'};
-  if(!['help','install','models','upgrade','rollback','doctor','restart','uninstall'].includes(result.command))throw Error('Unknown command: '+result.command);
+  if(!['help','install','models','upgrade','rollback','doctor','restart','register','uninstall'].includes(result.command))throw Error('Unknown command: '+result.command);
   for(let i=1;i<args.length;i++) {
     const key=keys[args[i]];if(!key)throw Error('Unknown option: '+args[i]);
     const value=args[++i];if(!value||value.startsWith('--'))throw Error('Missing value for '+args[i-1]);

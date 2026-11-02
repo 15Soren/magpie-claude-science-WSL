@@ -19,10 +19,10 @@ From this checkout in WSL:
 ```sh
 npm ci --ignore-scripts
 node src/cli.js install --gateway http://127.0.0.1:3425
-claude-science url
+mycsci
 ```
 
-Use the arrow keys to browse models, space to toggle selections, and enter to confirm. Paste the single-use URL into a Windows browser. Add `--model <catalog-id>` for unattended installation. For a protected gateway, set `MAGPIE_GATEWAY_KEY` before installation; the key is saved in the WSL user's private state file. Magpie model metadata is preserved and served to Science; support for capabilities and reasoning levels depends on the Science version.
+Use the arrow keys to browse models, space to toggle selections, and enter to confirm. `mycsci` starts or checks the bridge and prints a single-use URL to paste into a Windows browser. For existing installations, run `node src/cli.js register` from this checkout to install the command; ensure `~/.local/bin` is on PATH. Add `--model <catalog-id>` for unattended installation. For a protected gateway, set `MAGPIE_GATEWAY_KEY` before installation; the key is saved in the WSL user's private state file. Magpie model metadata is preserved and served to Science; support for capabilities and reasoning levels depends on the Science version.
 
 ```sh
 node src/cli.js doctor

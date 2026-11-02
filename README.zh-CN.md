@@ -19,10 +19,10 @@
 ```sh
 npm ci --ignore-scripts
 node src/cli.js install --gateway http://127.0.0.1:3425
-claude-science url
+mycsci
 ```
 
-安装时用方向键浏览模型，空格选择或取消选择，回车确认；将 `claude-science url` 输出的一次性链接粘贴到 Windows 浏览器。非交互安装可加 `--model <模型ID>`；使用受保护的网关时，可在安装前通过环境变量 `MAGPIE_GATEWAY_KEY` 提供密钥，密钥存放在 WSL 用户的私有状态文件中。模型目录保留 Magpie 提供的上下文长度、输出上限、模态、工具能力和推理等级，并向 Science 提供；Science 对部分能力和推理选项的实际支持取决于其自身版本。
+安装时用方向键浏览模型，空格选择或取消选择，回车确认；`mycsci` 会启动或检查桥接服务并输出一次性链接，将链接粘贴到 Windows 浏览器。已安装旧版本的用户可在本仓库运行 `node src/cli.js register` 注册该命令，需确保 `~/.local/bin` 在 PATH 中。非交互安装可加 `--model <模型ID>`；使用受保护的网关时，可在安装前通过环境变量 `MAGPIE_GATEWAY_KEY` 提供密钥，密钥存放在 WSL 用户的私有状态文件中。模型目录保留 Magpie 提供的上下文长度、输出上限、模态、工具能力和推理等级，并向 Science 提供；Science 对部分能力和推理选项的实际支持取决于其自身版本。
 
 ```sh
 node src/cli.js doctor

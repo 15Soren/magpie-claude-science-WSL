@@ -35,6 +35,12 @@ export function createInstaller(deps={}) {
   const plist=wsl?path.join(home,'.config','systemd','user',label+'.service'):path.join(home,'Library','LaunchAgents',label+'.plist'),domain=`gui/${process.getuid?.()??0}`;
   const run=deps.run||defaultRun,fetcher=deps.fetch||fetch,log=deps.log||console.log;
   const save=(file,content)=>managedWrite(file,content,privateJournal);
+  const commandPath=path.join(home,'.local','bin','mycsci'),commandJournal=path.join(root,'command-journal.json');
+  function registerCommand(){
+    if(fs.existsSync(commandPath)&&!json(commandJournal)?.entries?.some(entry=>entry.file===commandPath))throw Error('Refusing to overwrite existing command: '+commandPath);
+    managedWrite(commandPath,fs.readFileSync(path.join(project,'src','mycsci.js')),commandJournal);
+    fs.chmodSync(commandPath,0o700);
+  }
   const ownedManager=state=>{const status=json(state.statusFile);if(!status?.pid)return false;const command=run('/bin/ps',['-p',String(status.pid),'-o','command='],true).stdout||'';return command.includes(path.join(state.project,'src','runtime.js'))&&command.includes(stateFile);};
   const stop=deps.stopService|| (async state=>{
     if(wsl)run('systemctl',['--user','stop',label+'.service'],true);
@@ -107,7 +113,7 @@ export function createInstaller(deps={}) {
       if(!wsl){for(const entry of enabledBefore)if(entry.spec!==state.pluginSpec)run(magpie,['plugin','off',entry.spec]);select(state);}
       if(!previous)run(binary,['stop','--data-dir',originalDir]);
       await reserved.release();reserved=null;
-      launch(state);await healthy(state);
+      launch(state);await healthy(state);if(wsl)registerCommand();
       log(`${options.command==='rollback'?'Rolled back':options.command==='models'?'Models updated':previous?'Upgraded':'Installed'}. Model: ${model}. ${wsl?'Run claude-science url to open the web UI.':'Open the original Claude Science app.'}`);
       return state;
     }catch(error){
@@ -156,10 +162,12 @@ export function createInstaller(deps={}) {
       if(options.command==='models'&&!wsl)throw Error('Model catalog management is available in WSL standalone mode');
       if(['install','models','upgrade','rollback'].includes(options.command))return await install(options,state);
       if(!state){log('Not installed.');return;}
+      if(options.command==='register'){if(!wsl||!state.installed||!state.standalone)throw Error('Register requires an installed WSL bridge');registerCommand();log('Registered '+commandPath);return;}
       if(options.command==='restart'){if(state.deployment)verifyDeployment(state.deployment);await stop(state);launch({...state,node:state.node||process.execPath});await healthy(state);log('Restarted.');return;}
       if(options.command==='uninstall'){
         await stop(state);if(wsl)run('systemctl',['--user','disable',label+'.service'],true);const restored=restoreAll(state.configJournal),pl=restoreAll(installJournal);if(wsl)run('systemctl',['--user','daemon-reload']);
-        if(restored.conflicts.length||pl.conflicts.length)throw Error('User edits preserved; resolve restore conflicts in journals before removing integration.');
+        const command=wsl?restoreAll(commandJournal):{conflicts:[]};
+        if(restored.conflicts.length||pl.conflicts.length||command.conflicts.length)throw Error('User edits preserved; resolve restore conflicts in journals before removing integration.');
         if(!wsl){const magpie=discoverBinary('magpie',{explicit:options.magpie||state.magpie,env,home});run(magpie,['claude-science','default']);run(magpie,['plugin','rm',state.pluginSpec||state.project]);}
         save(stateFile,JSON.stringify({...state,installed:false},null,2));log('Uninstalled. Sessions and authentication retained at '+state.data);return;
       }
